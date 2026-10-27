@@ -1,0 +1,731 @@
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王先生的72小時危機：戈登十一項問診與護理診斷推演</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .chat-scroll::-webkit-scrollbar, .pattern-scroll::-webkit-scrollbar, .modal-scroll::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb, .pattern-scroll::-webkit-scrollbar-thumb, .modal-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- 頂部資訊列 -->
+    <header class="bg-slate-900 text-white shadow-md border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="bg-rose-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">神經內科病房 12-A</span>
+                    <span class="bg-sky-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">臨床推理決策工作台</span>
+                    <span class="text-xs text-slate-300">2026年9月23日（住院第1天）</span>
+                </div>
+                <h1 class="text-lg md:text-xl font-black tracking-tight text-white mt-1">王先生的72小時危機：從問診到護理診斷推演</h1>
+            </div>
+            
+            <!-- 評估進度條與診斷按鈕 -->
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <div class="text-[11px] text-slate-400 font-medium">戈登型態評估進度</div>
+                    <div class="text-xs font-bold text-amber-400"><span id="assessed-count">0</span> / 11 型態 (<span id="assessed-percent">0</span>%)</div>
+                </div>
+                <button 
+                    onclick="openDiagnosisModal()" 
+                    id="finish-interview-btn"
+                    class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md transition flex items-center gap-1.5 animate-pulse"
+                >
+                    <span>📋</span> 結束問診・推導護理診斷
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主體問診區域 -->
+    <main class="max-w-6xl w-full mx-auto p-3 md:p-6 flex-1 flex flex-col min-h-0 space-y-3">
+        
+        <!-- 戈登十一項快速導覽與問診範例列 -->
+        <section class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <span>📑</span> 戈登十一項健康功能型態指引（已評估會標記綠燈）：
+                </span>
+                <span id="current-pattern-badge" class="text-[11px] bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded-full">
+                    1. 健康認知與健康管理
+                </span>
+            </div>
+
+            <!-- 11項型態按鈕列表 (水平滑動，包含打勾標記) -->
+            <div class="flex gap-1.5 overflow-x-auto pattern-scroll pb-1.5 text-xs" id="pattern-tabs">
+                <!-- JS 動態生成 -->
+            </div>
+
+            <!-- 當前型態的示範提問快捷鍵 -->
+            <div class="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-1.5 text-xs">
+                <span class="text-slate-400 font-medium text-[11px]">臨床示範問句：</span>
+                <div id="quick-questions-container" class="flex flex-wrap gap-1.5">
+                    <!-- JS 動態生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 對話視窗 -->
+        <section id="chat-stream" class="flex-1 bg-white border border-slate-200 rounded-2xl p-4 overflow-y-auto space-y-4 shadow-sm chat-scroll min-h-[440px] max-h-[540px]">
+            <!-- 初始情境引言 -->
+            <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 leading-relaxed">
+                <span class="font-bold block text-amber-900 mb-0.5">病房現場情境：</span>
+                王先生坐在病床旁，右手微垂在膝蓋上，右側嘴角略微下垂。王太太在旁照料。請多面向提問以蒐集主客觀資料；問診告一段落後，請點擊右上角「結束問診・推導護理診斷」。
+            </div>
+
+            <!-- 開場白 -->
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow">王</div>
+                <div class="bg-amber-50/80 border border-amber-200 p-3 rounded-2xl rounded-tl-none text-xs sm:text-sm text-slate-800 leading-relaxed shadow-sm max-w-[85%]">
+                    <span class="text-[11px] text-amber-900 font-bold block mb-1">王先生（個案）：</span>
+                    <p class="italic text-slate-500 text-xs mb-1">（王先生緩慢抬起頭，右嘴角微偏，說話含糊、吃力）</p>
+                    <p class="font-medium">「護理師……妳好，我……我坐在這裡。」</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 輸入控制列 -->
+        <div class="bg-white p-2.5 rounded-2xl border border-slate-300 shadow-sm flex items-center gap-2">
+            <input 
+                type="text" 
+                id="nurse-input" 
+                class="flex-1 px-4 py-2 text-sm bg-transparent focus:outline-none placeholder-slate-400" 
+                placeholder="請輸入護理評估提問（例如：喝水會不會嗆到、每天藥誰整理、下床會不會沒力）..."
+                onkeydown="if(event.key === 'Enter') handleSend()"
+            >
+            <button 
+                onclick="handleSend()" 
+                id="send-btn"
+                class="bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold px-6 py-2.5 rounded-xl transition duration-150 shadow-sm shrink-0"
+            >
+                發問
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ================= 護理診斷推演互動 Modal ================= -->
+    <div id="diagnosis-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center p-3 md:p-6 z-50">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
+            <!-- Modal 頂部 -->
+            <div class="p-4 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🧠</span>
+                    <div>
+                        <h3 class="font-bold text-sm md:text-base">臨床決策推理：推導王先生的優先護理診斷</h3>
+                        <p class="text-[11px] text-slate-300">依據問診獲取之主客觀資料（S & O）進行問題分析與排序</p>
+                    </div>
+                </div>
+                <button onclick="closeDiagnosisModal()" class="text-slate-300 hover:text-white text-xl font-bold p-1">&times;</button>
+            </div>
+
+            <!-- Modal 內容滾動區 -->
+            <div class="p-5 overflow-y-auto modal-scroll space-y-6 flex-1 text-xs sm:text-sm">
+                
+                <!-- 區塊一：問診主客觀資料整合表（Evidence Summary） -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                    <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                        步驟一：回顧問診所蒐集之關鍵主客觀線索 (Key Cues)
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-xs">
+                        <div class="bg-white p-3 rounded-xl border border-rose-200 shadow-sm">
+                            <span class="font-bold text-rose-800 block mb-1">【吞嚥與呼吸道】</span>
+                            <ul class="text-slate-600 space-y-0.5 list-disc pl-4 text-[11px]">
+                                <li>主訴「喝水偶爾喉嚨卡卡」</li>
+                                <li>右嘴角歪斜下垂、第VII對腦神經麻痺</li>
+                                <li>尚未做吞嚥篩檢，具吸入性肺炎隱憂</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm">
+                            <span class="font-bold text-amber-800 block mb-1">【活動與安全】</span>
+                            <ul class="text-slate-600 space-y-0.5 list-disc pl-4 text-[11px]">
+                                <li>右上肢肌力4分、右下肢3~4分</li>
+                                <li>前天險些癱坐在地，步態嚴重不穩</li>
+                                <li>舊中風疊加新中風，高跌倒風險</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-sky-200 shadow-sm">
+                            <span class="font-bold text-sky-800 block mb-1">【健康管理與用藥】</span>
+                            <ul class="text-slate-600 space-y-0.5 list-disc pl-4 text-[11px]">
+                                <li>王太太因擔心傷身，日前私自停用Plavix</li>
+                                <li>長達31年抽菸史（1.5包/天）</li>
+                                <li>合併HTN、DM、CKD多重慢性病</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 區塊二：護生診斷排序挑戰題 (Interactive Prioritization) -->
+                <div class="bg-white border-2 border-indigo-100 rounded-2xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            步驟二：臨床推理排序挑戰－請依急迫性與生命安全排列「前三大優先護理診斷」
+                        </h4>
+                        <span class="text-[11px] text-slate-400">依 ABC 原則與急重症排序</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="diagnosis-selection-grid">
+                        <!-- 第一優先選擇 -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                            <label class="font-bold text-xs text-rose-800 block">🥇 第一優先診斷 (Priority 1)：</label>
+                            <select id="diag-rank-1" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+                                <option value="">-- 請選擇護理診斷 --</option>
+                                <option value="swallow">吞嚥障礙 (Impaired Swallowing) / 潛在吸入危險</option>
+                                <option value="fall">跌倒危險性 (Risk for Falls) / 軀體活動障礙</option>
+                                <option value="manage">無效健康維護 / 潛在反覆腦中風危險（停藥相關）</option>
+                                <option value="powerless">無力感 (Powerlessness) / 角色調適困難</option>
+                                <option value="sleep">情境性睡眠型態紊亂 (Disturbed Sleep Pattern)</option>
+                            </select>
+                        </div>
+
+                        <!-- 第二優先選擇 -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                            <label class="font-bold text-xs text-amber-800 block">🥈 第二優先診斷 (Priority 2)：</label>
+                            <select id="diag-rank-2" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+                                <option value="">-- 請選擇護理診斷 --</option>
+                                <option value="swallow">吞嚥障礙 (Impaired Swallowing) / 潛在吸入危險</option>
+                                <option value="fall">跌倒危險性 (Risk for Falls) / 軀體活動障礙</option>
+                                <option value="manage">無效健康維護 / 潛在反覆腦中風危險（停藥相關）</option>
+                                <option value="powerless">無力感 (Powerlessness) / 角色調適困難</option>
+                                <option value="sleep">情境性睡眠型態紊亂 (Disturbed Sleep Pattern)</option>
+                            </select>
+                        </div>
+
+                        <!-- 第三優先選擇 -->
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                            <label class="font-bold text-xs text-sky-800 block">🥉 第三優先診斷 (Priority 3)：</label>
+                            <select id="diag-rank-3" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500">
+                                <option value="">-- 請選擇護理診斷 --</option>
+                                <option value="swallow">吞嚥障礙 (Impaired Swallowing) / 潛在吸入危險</option>
+                                <option value="fall">跌倒危險性 (Risk for Falls) / 軀體活動障礙</option>
+                                <option value="manage">無效健康維護 / 潛在反覆腦中風危險（停藥相關）</option>
+                                <option value="powerless">無力感 (Powerlessness) / 角色調適困難</option>
+                                <option value="sleep">情境性睡眠型態紊亂 (Disturbed Sleep Pattern)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-right pt-1">
+                        <button 
+                            onclick="checkDiagnosticReasoning()" 
+                            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition shadow-sm"
+                        >
+                            送出推理與檢驗答案
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 區塊三：臨床推理檢驗回饋與 PES 護理診斷標準卡片 (初始隱藏) -->
+                <div id="diagnostic-feedback-box" class="hidden space-y-4">
+                    <!-- 判核結果橫幅 -->
+                    <div id="feedback-alert-banner" class="p-3.5 rounded-xl text-xs font-medium leading-relaxed"></div>
+
+                    <!-- 專家標準 PES 診斷陳述對照卡 -->
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50">
+                        <div class="bg-slate-800 text-white p-3 font-bold text-xs flex justify-between items-center">
+                            <span>專家解析：王先生急性期標準護理診斷 (NANDA-I PES 格式)</span>
+                            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded">臨床照護標準指引</span>
+                        </div>
+                        
+                        <div class="p-4 space-y-3 text-xs">
+                            <!-- 診斷 1 -->
+                            <div class="bg-white p-3 rounded-xl border border-rose-300 shadow-sm space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-rose-800 text-xs">【首要優先】吞嚥障礙 / 潛在吸入性肺炎危險性</span>
+                                    <span class="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded font-bold">生理 ABC 第一條</span>
+                                </div>
+                                <p class="text-slate-700 leading-relaxed">
+                                    <strong>P (問題)：</strong> 吞嚥功能障礙 (Impaired Swallowing)<br>
+                                    <strong>E (病因)：</strong> 與腦血管中風致顏面神經麻痺及延髓/舌下控制肌肉無力有關<br>
+                                    <strong>S (症狀)：</strong> 右側嘴角歪斜、自述喝水吞嚥不順、喉部有卡住感<br>
+                                    <strong class="text-rose-900">護理核心決策：</strong> 立即嚴格禁食水 (NPO)，待水吞嚥測試完成並照會語言治療師，嚴防隱性吸入。
+                                </p>
+                            </div>
+
+                            <!-- 診斷 2 -->
+                            <div class="bg-white p-3 rounded-xl border border-amber-300 shadow-sm space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-amber-800 text-xs">【次要優先】跌倒危險性 / 軀體活動障礙</span>
+                                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">人身安全保護</span>
+                                </div>
+                                <p class="text-slate-700 leading-relaxed">
+                                    <strong>P (問題)：</strong> 跌倒危險性 (Risk for Falls)<br>
+                                    <strong>E (病因)：</strong> 與左大腦中風導致右側肢體偏癱 (右上肢4分/右下肢3分) 及步態不穩有關<br>
+                                    <strong>S (症狀)：</strong> 個案懼怕站立、自訴右側手腳發軟、前天險些癱軟倒地<br>
+                                    <strong class="text-amber-900">護理核心決策：</strong> 啟用離床警報器、床欄保護、懸掛高跌倒標記、教導家屬正確分段起身與輪椅移位技巧。
+                                </p>
+                            </div>
+
+                            <!-- 診斷 3 -->
+                            <div class="bg-white p-3 rounded-xl border border-sky-300 shadow-sm space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-sky-800 text-xs">【關鍵衛教】無效健康維護 / 潛在反覆中風危險</span>
+                                    <span class="text-[10px] bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-bold">疾病管理與防範再發</span>
+                                </div>
+                                <p class="text-slate-700 leading-relaxed">
+                                    <strong>P (問題)：</strong> 無效健康管理 (Ineffective Health Management)<br>
+                                    <strong>E (病因)：</strong> 與家屬對抗血小板藥物重要性認知不足、恐懼藥物副作用及長期吸菸有關<br>
+                                    <strong>S (症狀)：</strong> 入院前2~3天王太太自行停用保栓通 (Plavix)，導致本次症狀惡化<br>
+                                    <strong class="text-sky-900">護理核心決策：</strong> 啟動 Teach-back 法強化抗血小板藥物不可擅停之重要性，並擬定慢性病多重用藥整合照護。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal 底部關閉按鈕 -->
+            <div class="p-3 bg-slate-100 border-t border-slate-200 text-right">
+                <button onclick="closeDiagnosisModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
+                    返回問診室
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="py-2 text-center text-[11px] text-slate-400 bg-white border-t border-slate-200">
+        王先生神經內科病房問診模擬｜戈登十一項型態評估與護理診斷臨床決策實作
+    </footer>
+
+<script>
+    // 戈登十一項功能性健康型態資料庫
+    const gordonPatterns = [
+        {
+            id: 1,
+            name: "健康認知與管理",
+            en: "Health Perception & Management",
+            prompts: [
+                "王先生，您知道這次為什麼需要住院嗎？",
+                "平常慢性病的藥都是誰整理的？最近有沒有自行停藥？",
+                "您平常抽菸多久了？每天抽多少？"
+            ],
+            keys: ["住院", "為什麼來", "藥", "停藥", "減藥", "plavix", "保栓通", "抽菸", "菸", "管理", "健康", "吸菸"],
+            patient: "我之前就中風過……這幾天又開始嘴歪、手腳沒力氣，走路也不穩……平常都是太太幫我拿藥吃……",
+            action: "王先生吃力地嘆了口氣，眼神有些愧疚地看向身旁的王太太。",
+            family: "護理師，平常是我幫他整理藥。我看他每天要吞高血壓、糖尿病、腎臟那麼大一把藥，擔心太傷身體，大概兩三天前就把那顆抗血小板的Plavix（保栓通）先停掉了……沒想到會變成這樣。另外他抽菸抽了三十幾年，每天都要一包半，一直勸不聽……"
+        },
+        {
+            id: 2,
+            name: "營養與代謝型態",
+            en: "Nutritional & Metabolic",
+            prompts: [
+                "最近吃東西或喝水有沒有吞不順、嗆咳的情況？",
+                "最近食慾如何？體重有沒有突然掉很多？",
+                "手上有沒有覺得打針的地方痛痛腫腫的？"
+            ],
+            keys: ["吞", "嗆", "喝水", "吃東西", "喉嚨", "食慾", "體重", "吃不下", "打針", "靜脈", "手腫", "營養"],
+            patient: "有時候……吞口水或是喝水……覺得喉嚨卡卡的、不太順……左手打針這邊脹脹熱熱的……",
+            action: "王先生下意識用右手摸了摸左前臂留置針注射處，眉頭微皺。",
+            family: "他這兩天喝水偶爾會咳一下，我們也不太確定到底有沒有嗆到。他胃口一直不算很好，人瘦瘦的才44公斤多。剛剛我看他左手吊點滴的地方有點紅紅腫腫的，正想請護理師幫忙看一下。"
+        },
+        {
+            id: 3,
+            name: "排泄型態",
+            en: "Elimination",
+            prompts: [
+                "最近小便的次數或尿量有沒有明顯減少或變多？",
+                "大便順利嗎？有沒有便祕或需要很用力解便？",
+                "腳踝或小腿有沒有覺得脹脹水腫？"
+            ],
+            keys: ["小便", "尿量", "尿尿", "大便", "排便", "便祕", "腹瀉", "水腫", "排泄", "廁所"],
+            patient: "小便……我沒有特別注意，現在下床很不方便，都是太太拿尿壺幫我……大便大概一兩天一次，還算可以……",
+            action: "王先生有些難為情地別過頭，指了指床底下備用的尿壺。",
+            family: "他腎臟本來就不好，醫生說有第三期腎臟病。小便量感覺跟以前差不多，但我們沒特別用量杯量過。今天量體重好像稍微重了一點點，不知道是不是水分排不出去有點水腫。"
+        },
+        {
+            id: 4,
+            name: "活動與運動型態",
+            en: "Activity & Exercise",
+            prompts: [
+                "王先生，您現在可以自己下床或站起來嗎？",
+                "您覺得哪一邊的手腳比較使不上力？現在肌力如何？",
+                "之前中風後平常在家都怎麼活動？"
+            ],
+            keys: ["活動", "下床", "走路", "手腳", "無力", "肌力", "抬高", "站", "輪椅", "跌倒", "沒力"],
+            patient: "右邊……手跟腳都沒有力氣……站起來腳就發軟，很怕跌倒……以前可以用輪椅代步，現在連從床上移到輪椅都很吃力……",
+            action: "王先生試著將右手與右腳抬離床面，但右腳只能在床墊上輕微平行拖曳，右手懸空不到三秒便無力垂落。",
+            family: "對啊！前天他要去廁所，腳一軟整個人往右邊倒，還好我跟兒子剛好在旁邊一把拉住，差點就摔在地上！護理師，他現在真的完全沒辦法自己走，下床一定要有人幫忙。"
+        },
+        {
+            id: 5,
+            name: "睡眠與休息型態",
+            en: "Sleep & Rest",
+            prompts: [
+                "王先生，住院這幾天晚上睡得好嗎？",
+                "晚上睡不好是因為身體不舒服，還是在擔心什麼？",
+                "白天會不會覺得精神很差、一直想打瞌睡？"
+            ],
+            keys: ["睡覺", "睡眠", "失眠", "睡不好", "做夢", "半夜醒來", "打瞌睡", "疲倦", "精神"],
+            patient: "晚上……有時候睡不太著……腦袋一直想自己什麼時候能出院、能不能好起來……身體右邊沉沉的也不太舒服……",
+            action: "王先生顯得有些疲憊，眼眶周圍帶著淡淡的黑眼圈。",
+            family: "他在醫院環境不習慣，隔壁床翻身或儀器逼逼叫他就醒過來。昨晚半夜醒來兩三次，白天精神就比較差，常常坐在床上發呆打盹。"
+        },
+        {
+            id: 6,
+            name: "認知與感受型態",
+            en: "Cognitive & Perceptual",
+            prompts: [
+                "王先生，您知道現在是哪一年、這裡是哪裡嗎？我是誰？",
+                "您覺得說話不清楚，是因為嘴巴不太聽使喚，還是找不到想說的字？",
+                "頭會不會痛、看東西有沒有模糊或重影？"
+            ],
+            keys: ["知道在哪", "定向感", "幾年", "哪裡", "說話", "講話", "構音", "語言", "聽得懂", "頭痛", "暈", "重影", "麻木", "感覺"],
+            patient: "我知道……現在是民國115年（2026年）……這裡是醫院……妳是護理師。我知道想講什麼……就是嘴巴跟舌頭不靈活，講不清楚……頭不會痛，也沒有看成兩個影子……",
+            action: "王先生神情專注地努力回答，能準確指向病房門口，但說話時右側嘴角明顯牽動不足。",
+            family: "他腦袋思路都是清楚的，我們講話他也都聽得懂，只是講話就像『含著滷蛋』一樣含糊，常常需要多講兩次我們才聽得懂。"
+        },
+        {
+            id: 7,
+            name: "自我認知與自我概念型態",
+            en: "Self-Perception & Self-Concept",
+            prompts: [
+                "這次生病再次中風，您覺得自己最大的改變是什麼？",
+                "需要家人一直幫忙您生活起居，心裡有什麼感受？",
+                "您會不會覺得自己失去了什麼？"
+            ],
+            keys: ["自己", "改變", "心情", "感受", "負擔", "沒用", "失能", "心情如何", "自己覺得"],
+            patient: "以前雖然中風……但有些事情還能自己勉強做……現在右手右腳都動不了，連尿尿吃飯都要人幫忙……覺得自己很沒用……變成家人的累贅……",
+            action: "王先生低著頭看著自己蜷曲的右手，眼眶泛紅，語氣充滿失落與無奈。",
+            family: "（王太太拍了拍先生的肩膀）他以前很獨立的，自從上次中風後心情就比較低落，這次又突然惡化，他這兩天常常看著窗外嘆氣，覺得自己成了拖累……"
+        },
+        {
+            id: 8,
+            name: "角色與關係型態",
+            en: "Role & Relationship",
+            prompts: [
+                "王先生，平常在家裡主要是誰在照顧您？",
+                "王太太，照顧先生的這段時間，有沒有覺得最吃力或困難的地方？",
+                "家裡的其他孩子會一起幫忙分擔照護嗎？"
+            ],
+            keys: ["誰照顧", "照顧", "家人", "太太", "太太照顧", "孩子", "負擔", "家庭", "支持", "關係"],
+            patient: "平常……都是太太在辛苦照顧我，孩子在上班，放假也會回來看我、幫忙買東西……",
+            action: "王先生感激又心疼地轉頭看著王太太。",
+            family: "孩子們都要上班討生活，主要還是我在顧。但我自己年紀也大了，體力真的越來越吃不消。這次他手腳變得更沒力，光是要扶他從床上下來我都快抱不動，真的很擔心回家之後不知道該怎麼照顧……"
+        },
+        {
+            id: 9,
+            name: "性與生殖型態",
+            en: "Sexuality & Reproductive",
+            prompts: [
+                "王先生，生病之後跟伴侶的親密關係或相處方式有沒有受到影響？",
+                "您願意談談生病後與太太的互動感受嗎？"
+            ],
+            keys: ["親密", "性生活", "夫妻生活", "伴侶", "生殖", "性功能"],
+            patient: "這方面……我現在這個樣子，身體都動不了了……還談什麼這些……先不用談這個啦……",
+            action: "王先生有些尷尬地擺了擺無力的右手，輕輕搖了搖頭，迴避了視線。",
+            family: "護理師，我們都七十幾歲老夫老妻了，現在最重要是他的身體跟手腳能快點恢復，其他親密生活那些早就沒有去想了。"
+        },
+        {
+            id: 10,
+            name: "因應與壓力耐受型態",
+            en: "Coping & Stress Tolerance",
+            prompts: [
+                "王先生，這次再次中風，您心裡最害怕、壓力最大的是什麼？",
+                "覺得很心煩或壓力大的時候，您通常都怎麼抒發？",
+                "王太太，您覺得壓力大時都怎麼調適？"
+            ],
+            keys: ["壓力", "害怕", "擔心", "緊張", "抒發", "怎麼辦", "調適", "焦慮", "因應"],
+            patient: "我最怕……以後都不能自己走路，整天躺在床上動彈不得……心煩的時候就看看電視、跟太太說說話，但現在講話也不清楚，更覺得胸口悶悶的……",
+            action: "王先生雙手緊扣，眼神流露出對未來失能的焦慮與無助感。",
+            family: "遇到這種事誰能不慌呢？我每天晚上都在想要是他再中風一次該怎麼辦，有時候只能自己偷偷跑去走廊哭一哭，回來還是得打起精神照顧他。"
+        },
+        {
+            id: 11,
+            name: "價值與信念型態",
+            en: "Value & Belief",
+            prompts: [
+                "王先生，對您來說現在生命中最重要的事是什麼？",
+                "您對接下來的治療跟復健有沒有什麼期待或目標？",
+                "家裡有沒有特定的宗教信仰或心靈寄託？"
+            ],
+            keys: ["目標", "希望", "期待", "價值", "最重要", "信仰", "拜拜", "宗教", "信念", "想回家"],
+            patient: "我最大的希望……就是能早點出院回家……手腳至少能恢復一點力氣，可以自己上廁所、自己拿湯匙吃飯……不要一直拖累太太……",
+            action: "王先生眼神中透露出一絲渴望與期盼，專注地看著護理師。",
+            family: "我們家平時初一十五會拜拜求平安。我們對復健很有意願，只要能讓他慢慢恢復一點生活自理能力，多辛苦我們都願意配合醫院。"
+        }
+    ];
+
+    // 追蹤各型態是否已問診過
+    let assessedPatterns = new Set();
+    let currentPatternIndex = 0;
+
+    window.onload = function() {
+        renderPatternTabs();
+        selectPattern(0);
+        updateProgress();
+    };
+
+    function renderPatternTabs() {
+        const container = document.getElementById('pattern-tabs');
+        container.innerHTML = '';
+        gordonPatterns.forEach((p, idx) => {
+            const btn = document.createElement('button');
+            btn.id = `tab-btn-${idx}`;
+            const isAssessed = assessedPatterns.has(p.id);
+            btn.className = `px-3 py-1.5 rounded-xl border font-semibold whitespace-nowrap transition shrink-0 flex items-center gap-1 ${
+                idx === 0 
+                ? 'bg-sky-600 text-white border-sky-600 shadow-sm' 
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`;
+            btn.innerHTML = `
+                <span>${p.id}. ${p.name}</span>
+                <span id="check-icon-${p.id}" class="${isAssessed ? 'text-emerald-400' : 'hidden'} text-xs font-black">✓</span>
+            `;
+            btn.onclick = () => selectPattern(idx);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectPattern(idx) {
+        currentPatternIndex = idx;
+        const pattern = gordonPatterns[idx];
+
+        gordonPatterns.forEach((_, i) => {
+            const btn = document.getElementById(`tab-btn-${i}`);
+            const isAssessed = assessedPatterns.has(i + 1);
+            if (i === idx) {
+                btn.className = 'px-3 py-1.5 rounded-xl border font-bold whitespace-nowrap transition shrink-0 bg-sky-600 text-white border-sky-600 shadow-sm flex items-center gap-1';
+            } else {
+                btn.className = `px-3 py-1.5 rounded-xl border font-semibold whitespace-nowrap transition shrink-0 flex items-center gap-1 ${
+                    isAssessed ? 'bg-emerald-50/70 border-emerald-300 text-emerald-900' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`;
+            }
+        });
+
+        document.getElementById('current-pattern-badge').innerText = `${pattern.id}. ${pattern.name} (${pattern.en})`;
+
+        const qContainer = document.getElementById('quick-questions-container');
+        qContainer.innerHTML = '';
+        pattern.prompts.forEach(q => {
+            const chip = document.createElement('button');
+            chip.className = "text-xs bg-slate-100 hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300 border border-slate-200 text-slate-700 py-1 px-2.5 rounded-full transition text-left";
+            chip.innerText = q;
+            chip.onclick = () => quickAsk(q);
+            qContainer.appendChild(chip);
+        });
+    }
+
+    function quickAsk(text) {
+        document.getElementById('nurse-input').value = text;
+        handleSend();
+    }
+
+    function handleSend() {
+        const input = document.getElementById('nurse-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        renderNurseBubble(text);
+        input.value = '';
+
+        const loading = showLoadingBubble();
+
+        setTimeout(() => {
+            removeLoadingBubble(loading);
+            const match = matchGordonPattern(text);
+            
+            // 標記該型態已評估
+            if (match.id > 0) {
+                assessedPatterns.add(match.id);
+                updateProgress();
+            }
+
+            renderPatientResponse(match);
+        }, 500);
+    }
+
+    function matchGordonPattern(text) {
+        const lower = text.toLowerCase();
+        const current = gordonPatterns[currentPatternIndex];
+        if (current.keys.some(k => lower.includes(k.toLowerCase()))) {
+            return current;
+        }
+
+        for (const p of gordonPatterns) {
+            if (p.keys.some(k => lower.includes(k.toLowerCase()))) {
+                selectPattern(p.id - 1);
+                return p;
+            }
+        }
+
+        return {
+            id: 0,
+            name: "一般回覆",
+            patient: "護理師……妳說的那個……我現在講話不太靈光，腦袋轉得慢……不太清楚怎麼跟妳說……",
+            action: "王先生顯得有些疲倦，右嘴角微微抽動了一下，無奈地看著身邊的太太。",
+            family: "護理師不好意思，他現在神經反應比較遲鈍一點。如果是生活起居或是吃藥的事情，您也可以直接問我看看。"
+        };
+    }
+
+    function updateProgress() {
+        const count = assessedPatterns.size;
+        document.getElementById('assessed-count').innerText = count;
+        const pct = Math.round((count / 11) * 100);
+        document.getElementById('assessed-percent').innerText = pct;
+
+        assessedPatterns.forEach(id => {
+            const icon = document.getElementById(`check-icon-${id}`);
+            if (icon) icon.classList.remove('hidden');
+        });
+    }
+
+    function renderNurseBubble(content) {
+        const stream = document.getElementById('chat-stream');
+        const wrap = document.createElement('div');
+        wrap.className = "flex items-start gap-3 justify-end";
+        wrap.innerHTML = `
+            <div class="bg-sky-600 text-white p-3 rounded-2xl rounded-tr-none text-xs sm:text-sm leading-relaxed shadow-sm max-w-[85%]">
+                <span class="text-[10px] text-sky-200 font-bold block mb-1">實習護理師（您）：</span>
+                <p>${escapeHtml(content)}</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-sky-700 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow">護</div>
+        `;
+        stream.appendChild(wrap);
+        stream.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' });
+    }
+
+    function renderPatientResponse(data) {
+        const stream = document.getElementById('chat-stream');
+        const wrap = document.createElement('div');
+        wrap.className = "flex items-start gap-3";
+
+        let tagHtml = '';
+        if (data.id > 0) {
+            tagHtml = `<span class="inline-block text-[10px] bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded mb-1.5">型態 ${data.id}：${data.name}</span>`;
+        }
+
+        let familyHtml = '';
+        if (data.family) {
+            familyHtml = `
+                <div class="mt-2.5 pt-2 border-t border-amber-200/60 text-emerald-950">
+                    <span class="text-[11px] font-bold text-emerald-800 block mb-0.5">王太太（家屬補充）：</span>
+                    <p class="text-xs sm:text-sm">${escapeHtml(data.family)}</p>
+                </div>
+            `;
+        }
+
+        wrap.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow">王</div>
+            <div class="bg-amber-50/80 border border-amber-200 p-3 rounded-2xl rounded-tl-none text-xs sm:text-sm text-slate-800 leading-relaxed shadow-sm max-w-[85%]">
+                ${tagHtml}
+                <span class="text-[11px] text-amber-900 font-bold block mb-0.5">王先生（個案）：</span>
+                ${data.action ? `<p class="italic text-slate-500 text-xs mb-1.5">（${escapeHtml(data.action)}）</p>` : ''}
+                <p class="font-medium text-slate-900">「${escapeHtml(data.patient)}」</p>
+                ${familyHtml}
+            </div>
+        `;
+
+        stream.appendChild(wrap);
+        stream.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' });
+    }
+
+    function showLoadingBubble() {
+        const stream = document.getElementById('chat-stream');
+        const wrap = document.createElement('div');
+        wrap.id = "temp-loading";
+        wrap.className = "flex items-start gap-2";
+        wrap.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-xs shrink-0 opacity-50">王</div>
+            <div class="bg-slate-100 text-slate-400 p-2.5 rounded-xl text-xs italic animate-pulse">
+                王先生正在吃力地組織回答...
+            </div>
+        `;
+        stream.appendChild(wrap);
+        stream.scrollTo({ top: stream.scrollHeight, behavior: 'smooth' });
+        return wrap;
+    }
+
+    function removeLoadingBubble(elem) {
+        if (elem && elem.parentNode) {
+            elem.parentNode.removeChild(elem);
+        }
+    }
+
+    // Modal 控制函式
+    function openDiagnosisModal() {
+        document.getElementById('diagnosis-modal').classList.remove('hidden');
+        document.getElementById('diagnosis-modal').classList.add('flex');
+    }
+
+    function closeDiagnosisModal() {
+        document.getElementById('diagnosis-modal').classList.add('hidden');
+        document.getElementById('diagnosis-modal').classList.remove('flex');
+    }
+
+    // 檢核護生診斷排序決策
+    function checkDiagnosticReasoning() {
+        const r1 = document.getElementById('diag-rank-1').value;
+        const r2 = document.getElementById('diag-rank-2').value;
+        const r3 = document.getElementById('diag-rank-3').value;
+
+        if (!r1 || !r2 || !r3) {
+            alert('請完整選擇前三名優先護理診斷再送出檢核！');
+            return;
+        }
+
+        // 避免重複選擇相同選項
+        if (r1 === r2 || r1 === r3 || r2 === r3) {
+            alert('前三大優先護理診斷不能重複選擇相同項目，請重新排序！');
+            return;
+        }
+
+        const banner = document.getElementById('feedback-alert-banner');
+        const feedbackBox = document.getElementById('diagnostic-feedback-box');
+        feedbackBox.classList.remove('hidden');
+
+        // 正確標準排序：
+        // 首要優先必為 swallow (吞嚥障礙/呼吸道安全 ABC原則)
+        // 次要通常為 fall (跌倒高危險/身體活動無力)
+        // 第三通常為 manage (停藥與健康管理不遵從/中風復發危險)
+        if (r1 === 'swallow' && r2 === 'fall' && r3 === 'manage') {
+            banner.className = "p-3.5 rounded-xl text-xs font-bold leading-relaxed bg-emerald-100 border border-emerald-300 text-emerald-900";
+            banner.innerHTML = `
+                🎉 <strong>完美推理！排序完全正確！</strong><br>
+                你的臨床排序精準契合急重症護理優先原則：<br>
+                1. <strong>首要（Airway/Breathing）：</strong> 吞嚥障礙引發之吸入性肺炎威脅生命最急迫。<br>
+                2. <strong>次要（Safety）：</strong> 右側肌力3~4分且有跌倒史，屬即時人身傷害風險。<br>
+                3. <strong>第三（Management）：</strong> 私自停用 Plavix 為本次惡化主因，需在出院前建立關鍵用藥認知防範再發。
+            `;
+        } else if (r1 === 'swallow') {
+            banner.className = "p-3.5 rounded-xl text-xs font-medium leading-relaxed bg-amber-100 border border-amber-300 text-amber-900";
+            banner.innerHTML = `
+                ⚠️ <strong>第一優先判定正確（吞嚥障礙），但次要與第三順序可微調！</strong><br>
+                你精準抓住了最致命的「吞嚥障礙與吸入風險（ABC原則）」。但在次要排序中，急性期「跌倒安全防護」應略高於「慢性病衛教管理」。下方已為您列出標準 PES 診斷陳述。
+            `;
+        } else {
+            banner.className = "p-3.5 rounded-xl text-xs font-medium leading-relaxed bg-rose-100 border border-rose-300 text-rose-900";
+            banner.innerHTML = `
+                ❌ <strong>臨床優先順序有優化空間（注意生命安全優先級）！</strong><br>
+                在急性神經學病患中，<strong>「吞嚥障礙 (Impaired Swallowing)」必須列為第一優先</strong>！因為一旦嗆咳引發吸入性肺炎，可能在數小時內急速演變為呼吸衰竭危及生命（高於跌倒與用藥衛教）。請參考下方標準解析。
+            `;
+        }
+
+        feedbackBox.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, function(s) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s];
+        });
+    }
+</script>
+</body>
+</html>
